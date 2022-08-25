@@ -1,6 +1,7 @@
 use crate::geometry::normal::Normal;
 use crate::geometry::point::Point;
 use crate::geometry::ray::Ray;
+use crate::geometry::vector::Vector;
 use crate::renderer::viewframe::ViewFrame;
 
 // Ray-tracing camera.
@@ -29,7 +30,7 @@ impl Camera {
         let point = self
             .view_frame
             .point_on_pixel(x, y, image_width, image_height);
-        let direction = (point.to_vector() - self.position.to_vector()).normalize();
+            let direction = (Vector::from(point) - Vector::from(self.position)).normalize();
         Ray::new(self.position, direction)
     }
 }

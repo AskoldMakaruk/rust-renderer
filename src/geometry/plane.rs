@@ -1,8 +1,9 @@
 use crate::geometry::normal::Normal;
 use crate::geometry::point::Point;
 use crate::geometry::ray::Ray;
+use crate::geometry::vector::Vector;
 
-use super::Intersect;
+use super::{Intersect, NormalAtPoint};
 
 pub(crate) struct Plane {
     pub(crate) normal: Normal,
@@ -26,14 +27,14 @@ impl Intersect for Plane {
         // if d * n == 0 then the ray is parallel to the plane, so no intersection
         // if t < 0 then the ray is pointing away from the plane, so no intersection
 
-        let normal = self.normal.to_vector();
-        let dn = ray.direction.to_vector().dot(normal);
+        let normal:Vector = self.normal.into();
+        let dn =Vector::from(ray.direction).dot(normal);
 
         if dn.abs() <= f64::EPSILON {
             return None;
         }
 
-        let k = self.center.to_vector() - ray.origin.to_vector();
+        let k = Vector::from(self.center) - Vector::from(ray.origin);
         let t = k.dot(normal) / dn;
         if t >= 0. {
             Some(t)
@@ -41,4 +42,10 @@ impl Intersect for Plane {
             None
         }
     }
+}
+
+impl NormalAtPoint for Plane {
+   fn normal_at_point(&self, point: &Point) -> Normal {
+      self.normal 
+   } 
 }

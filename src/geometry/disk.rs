@@ -1,6 +1,7 @@
 use crate::geometry::normal::Normal;
 use crate::geometry::point::Point;
 use crate::geometry::ray::Ray;
+use crate::geometry::vector::Vector;
 
 use super::plane::Plane;
 use super::Intersect;
@@ -27,7 +28,7 @@ impl Intersect for Disk {
         match dbg!(plane.intersect(ray)) {
             Some(t) if t >= 0. => {
                 let point = ray.at(t);
-                let distance = (point.to_vector() - self.center.to_vector()).length();
+                let distance = (Vector::from(point) - Vector::from(self.center)).length();
                 if distance < self.radius {
                     Some(t)
                 } else {

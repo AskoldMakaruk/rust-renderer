@@ -19,10 +19,6 @@ impl Normal {
         Normal { x, y, z }
     }
 
-    pub(crate) fn to_vector(&self) -> Vector {
-        Vector::new(self.x, self.y, self.z)
-    }
-
     pub(crate) fn dot(&self, other: Normal) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }

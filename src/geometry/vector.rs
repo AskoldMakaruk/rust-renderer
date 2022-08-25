@@ -1,6 +1,7 @@
-use std::ops::{Add, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::geometry::normal::Normal;
+use crate::geometry::point::Point;
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct Vector {
@@ -60,6 +61,30 @@ impl Sub for Vector {
             y: self.y - other.y,
             z: self.z - other.z,
         }
+    }
+}
+
+impl Div<f64> for Vector {
+    type Output = Vector;
+
+    fn div(self, other: f64) -> Vector {
+        Vector {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other,
+        }
+    }
+}
+
+impl From<Point> for Vector {
+    fn from(point: Point) -> Vector {
+        Vector::new(point.x, point.y, point.z)
+    }
+}
+
+impl From<Normal> for Vector {
+    fn from(normal: Normal) -> Vector {
+        Vector::new(normal.x, normal.y, normal.z)
     }
 }
 

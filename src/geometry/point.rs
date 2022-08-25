@@ -26,3 +26,9 @@ impl Add<Vector> for Point {
         Point::new(self.x + other.x, self.y + other.y, self.z + other.z)
     }
 }
+
+impl From<Vector> for Point {
+    fn from(vector: Vector) -> Point {
+        Point::new(vector.x, vector.y, vector.z)
+    }
+}
