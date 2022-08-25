@@ -23,6 +23,14 @@ impl Vector {
         self.dot(*self).sqrt()
     }
 
+    pub(crate) fn cross(&self, other: Vector) -> Vector {
+         Vector {
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
+        }
+    }
+
     pub(crate) fn normalize(&self) -> Normal {
         let length = self.length();
         if length == 0.0 {

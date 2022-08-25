@@ -1,4 +1,3 @@
-
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Result;
@@ -38,10 +37,13 @@ impl Output for PPMImage {
             for x in 0..width {
                 let index = y * width + x;
                 let intensity = buff[index];
-                let r = (intensity * 255.0) as u8;
-                stream.write(&[r, r, r])?;
+                if intensity == -1.0 {
+                    stream.write(&[45, 100, 0])?;
+                } else {
+                    let r = (intensity * 255.0) as u8;
+                    stream.write(&[r, r, r])?;
+                }
             }
-            // stream.write(b"\n")?;
         }
 
         Ok(())
