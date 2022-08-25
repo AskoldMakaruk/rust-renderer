@@ -1,4 +1,5 @@
 use std::ops::Mul;
+use std::ops::Neg;
 
 use crate::geometry::vector::Vector;
 
@@ -32,6 +33,18 @@ impl Mul<f64> for Normal {
             x: self.x * other,
             y: self.y * other,
             z: self.z * other,
+        }
+    }
+}
+
+impl Neg for Normal {
+    type Output = Normal;
+
+    fn neg(self) -> Normal {
+        Normal {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
         }
     }
 }

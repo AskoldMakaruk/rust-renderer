@@ -1,10 +1,11 @@
-use crate::geometry::vector::Vector;
 use crate::geometry::normal::Normal;
 use crate::geometry::point::Point;
 use crate::geometry::ray::Ray;
+use crate::geometry::vector::Vector;
 
 use super::plane::Plane;
 use super::Intersect;
+use super::Intersection;
 use super::NormalAtPoint;
 
 #[derive(Debug, Clone, Copy)]
@@ -31,7 +32,7 @@ impl AlignedBox {
 }
 
 impl Intersect for AlignedBox {
-    fn intersect(&self, ray: &Ray) -> Option<f64> {
+    fn intersect(&self, ray: &Ray) -> Intersection {
         let mut tmin = (self.min.x - ray.origin.x) / ray.direction.x;
         let mut tmax = (self.max.x - ray.origin.x) / ray.direction.x;
 
@@ -47,7 +48,7 @@ impl Intersect for AlignedBox {
 
         swap_tmin_tmax(&mut tymin, &mut tymax);
         if tmin > tymax || tymin > tmax {
-            return None;
+            return Intersection::DoesNotIntersect;
         }
 
         if tymin > tmin {
@@ -63,22 +64,22 @@ impl Intersect for AlignedBox {
 
         swap_tmin_tmax(&mut tzmin, &mut tzmax);
         if tmin > tzmax || tzmin > tmax {
-            return None;
+            return Intersection::DoesNotIntersect;
         }
         if tzmin > tmin {
             tmin = tzmin;
         }
 
         if tmin.is_infinite() || tmin.is_nan() {
-            None
+            Intersection::DoesNotIntersect
         } else {
-            Some(tmin)
+            Intersection::Intersect(tmin)
         }
     }
 }
 
 impl NormalAtPoint for AlignedBox {
-    fn normal_at_point(&self, point: &Point) -> Normal {
+    fn normal_at_point(&self, point: &Point, _: Intersection) -> Normal {
         if (point.x - self.min.x).abs() < 0.001 {
             Normal::new(-1., 0., 0.)
         } else if (point.x - self.max.x).abs() < 0.001 {

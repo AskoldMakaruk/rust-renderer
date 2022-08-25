@@ -1,6 +1,9 @@
 use std::ops::Add;
+use std::ops::Sub;
 
 use crate::geometry::vector::Vector;
+
+use super::matrix::Matrix;
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct Point {
@@ -26,9 +29,30 @@ impl Add<Vector> for Point {
         Point::new(self.x + other.x, self.y + other.y, self.z + other.z)
     }
 }
-
 impl From<Vector> for Point {
     fn from(vector: Vector) -> Point {
         Point::new(vector.x, vector.y, vector.z)
     }
 }
+
+impl Sub for Point {
+    type Output = Vector;
+
+    fn sub(self, other: Point) -> Vector {
+        Vector::new(self.x - other.x, self.y - other.y, self.z - other.z)
+    }
+}
+
+impl From<Matrix<3, 1>> for Point {
+    fn from(matrix: Matrix<3, 1>) -> Point {
+        Point::new(matrix[0][0], matrix[1][0], matrix[2][0])
+    }
+}
+
+impl From<Matrix<1, 3>> for Point {
+    fn from(matrix: Matrix<1, 3>) -> Point {
+        Point::new(matrix[0][0], matrix[0][1], matrix[0][2])
+    }
+}
+
+

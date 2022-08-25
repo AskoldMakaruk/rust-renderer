@@ -3,15 +3,21 @@ pub(crate) mod light;
 pub(crate) mod scene;
 pub(crate) mod viewframe;
 
-use crate::geometry::normal::Normal;
-use crate::geometry::ray::Ray;
-use crate::geometry::Intersect;
-use crate::geometry::NormalAtPoint;
-use crate::io::Output;
 use camera::Camera;
 use scene::Scene;
-pub(crate) trait RayTracable: Intersect + NormalAtPoint {}
-impl<T> RayTracable for T where T: Intersect + NormalAtPoint {}
+
+use crate::geometry::normal::Normal;
+use crate::geometry::point::Point;
+use crate::geometry::ray::Ray;
+use crate::geometry::Intersect;
+use crate::geometry::Intersection;
+use crate::geometry::NormalAtPoint;
+use crate::geometry::Transform;
+
+use crate::io::Output;
+
+pub(crate) trait RayTracable: Intersect + NormalAtPoint + Transform {}
+impl<T> RayTracable for T where T: Intersect + NormalAtPoint + Transform {}
 
 pub(crate) struct RayTracer {
     scene: Scene,
@@ -29,20 +35,22 @@ impl RayTracer {
             height,
         }
     }
+
     pub(crate) fn render(&self, output: impl Output) -> Result<(), std::io::Error> {
-        let mut buff = vec![0.0; self.width * self.height];
+        let mut buff = vec![-1.0; self.width * self.height];
         for y in 0..self.height {
+            println!("Ray-tracing row: {}/{}", y, self.height);
             for x in 0..self.width {
                 let ray = self
                     .camera
                     .ray_for_pixel(x, self.height - y, self.width, self.height);
                 let traced = self.trace(&ray);
 
-                if let Some((index, distance)) = traced {
+                if let Some((index, intersection)) = traced {
                     let object = self.scene.objects().get(index).unwrap();
-                    let point = ray.at(distance);
-                    let normal = object.normal_at_point(&point);
-                    let intensity = self.light_value_at_normal(&normal);
+                    let point = ray.at(intersection.distance().unwrap());
+                    let normal = object.normal_at_point(&point, intersection);
+                    let intensity = self.light_value(normal, point, index);
                     buff[y * self.width + x] = intensity;
                 }
             }
@@ -50,24 +58,48 @@ impl RayTracer {
         output.dump(&buff, self.width, self.height)
     }
 
-    fn light_value_at_normal(&self, normal: &Normal) -> f64 {
+    fn is_any_object_blocking(&self, ray: &Ray, object_id: usize) -> bool {
+        self.scene.objects().iter().enumerate().any(|(id, object)| {
+            if id == object_id {
+                return false;
+            }
+            if let Some(distance) = object.intersect(ray).distance() {
+                distance > 0.
+            } else {
+                false
+            }
+        })
+    }
+
+    fn light_value(&self, normal: Normal, intersection_point: Point, object_id: usize) -> f64 {
         self.scene
             .lights()
             .iter()
-            .map(|light| light.intensity_at_normal(normal))
-            .sum()
+            .map(|light| {
+                let light_dir = (light.position - intersection_point).normalize();
+                let ray = Ray::new(intersection_point, light_dir);
+                if self.is_any_object_blocking(&ray, object_id) {
+                    (light_dir.dot(normal) * 0.5).max(0.0)
+                } else {
+                    light_dir.dot(normal).max(0.0)
+                }
+            })
+            .sum::<f64>()
+            .min(1.0)
     }
 
-    fn trace(&self, ray: &Ray) -> Option<(usize, f64)> {
+    fn trace(&self, ray: &Ray) -> Option<(usize, Intersection)> {
         self.scene
             .objects()
             .iter()
             .enumerate()
-            .flat_map(|(i, object)| {
-                object
-                    .intersect(&ray)
-                    .and_then(|distance| Some((i, distance)))
+            .map(|(i, object)| (i, object.intersect(ray)))
+            .filter(|&(_, intesection)| intesection != Intersection::DoesNotIntersect)
+            .min_by(|&(_, a), &(_, b)| {
+                a.distance()
+                    .unwrap()
+                    .partial_cmp(&b.distance().unwrap())
+                    .expect("Expected non NAN distance")
             })
-            .min_by(|(_, a), (_, b)| a.partial_cmp(b).expect("Expected non NAN distance"))
     }
 }

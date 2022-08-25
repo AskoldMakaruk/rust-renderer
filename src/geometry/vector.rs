@@ -1,5 +1,6 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
+use crate::geometry::matrix::Matrix;
 use crate::geometry::normal::Normal;
 use crate::geometry::point::Point;
 
@@ -24,7 +25,7 @@ impl Vector {
     }
 
     pub(crate) fn cross(&self, other: Vector) -> Vector {
-         Vector {
+        Vector {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
             z: self.x * other.y - self.y * other.x,
@@ -105,5 +106,16 @@ impl Neg for Vector {
             y: -self.y,
             z: -self.z,
         }
+    }
+}
+impl From<Matrix<3, 1>> for Vector {
+    fn from(matrix: Matrix<3, 1>) -> Vector {
+        Vector::new(matrix[0][0], matrix[1][0], matrix[2][0])
+    }
+}
+
+impl From<Matrix<1, 3>> for Vector {
+    fn from(matrix: Matrix<1, 3>) -> Vector {
+        Vector::new(matrix[0][0], matrix[0][1], matrix[0][2])
     }
 }
