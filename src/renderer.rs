@@ -7,9 +7,9 @@ use crate::geometry::normal::Normal;
 use crate::geometry::ray::Ray;
 use crate::geometry::Intersect;
 use crate::geometry::NormalAtPoint;
+use crate::io::Output;
 use camera::Camera;
 use scene::Scene;
-
 pub(crate) trait RayTracable: Intersect + NormalAtPoint {}
 impl<T> RayTracable for T where T: Intersect + NormalAtPoint {}
 
@@ -29,8 +29,8 @@ impl RayTracer {
             height,
         }
     }
-
-    pub(crate) fn render_into_console(&self) {
+    pub(crate) fn render(&self, output: impl Output) -> Result<(), std::io::Error> {
+        let mut buff = vec![0.0; self.width * self.height];
         for y in 0..self.height {
             for x in 0..self.width {
                 let ray = self
@@ -43,21 +43,11 @@ impl RayTracer {
                     let point = ray.at(distance);
                     let normal = object.normal_at_point(&point);
                     let intensity = self.light_value_at_normal(&normal);
-                    // let intensity = 1.0;
-                    let char = match intensity {
-                        l if l > 0.0 && l < 0.2 => '.',
-                        l if l > 0.2 && l < 0.5 => '*',
-                        l if l > 0.5 && l < 0.8 => 'O',
-                        l if l > 0.8 => '#',
-                        _ => ' ',
-                    };
-                    print!("{}", char);
-                } else {
-                    print!(" ");
+                    buff[y * self.width + x] = intensity;
                 }
             }
-            println!();
         }
+        output.dump(&buff, self.width, self.height)
     }
 
     fn light_value_at_normal(&self, normal: &Normal) -> f64 {

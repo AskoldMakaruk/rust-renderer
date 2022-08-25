@@ -1,6 +1,8 @@
 mod geometry;
+mod io;
 mod renderer;
 
+use std::path::PathBuf;
 use geometry::point::Point;
 use geometry::sphere::Sphere;
 use renderer::camera::Camera;
@@ -21,6 +23,8 @@ fn main() {
 
     let camera = Camera::new(Point::new(0.0, 0.0, 0.0), viewframe);
 
-    let renderer = RayTracer::new(scene, camera, 50, 50);
-    renderer.render_into_console();
+    let ray_tracer = RayTracer::new(scene, camera, 500, 500);
+    ray_tracer
+        .render(io::ppm_image::PPMImage::new(PathBuf::from("./image.ppm")))
+        .unwrap();
 }
